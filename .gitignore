@@ -1,0 +1,9 @@
+.env
+memory.json
+MEMORY.md
+checkpoints/
+__pycache__/
+*.pyc
+.venv/
+venv/
+docs/screenshots/*.tmp
