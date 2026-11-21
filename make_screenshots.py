@@ -27,8 +27,6 @@ OUT_DIR = os.path.join(ROOT, "docs", "screenshots")
 
 MONO = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
 MONO_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf"
-MYANMAR = "/usr/share/fonts/truetype/noto/NotoSansMyanmar-Regular.ttf"
-MYANMAR_BOLD = "/usr/share/fonts/truetype/noto/NotoSansMyanmar-Bold.ttf"
 
 FONT_SIZE = 17
 LINE_H = 25
@@ -41,13 +39,11 @@ GOLD = (251, 191, 36)
 CYAN = (0, 208, 255)
 DIM = (156, 163, 175)
 
-MY_RE = re.compile(r"[\u1000-\u109F]")
-
 SCENARIOS = {
     "01-startup.png": "/exit\n",
     "02-chat.png": (
         "/name Aung\n"
-        "မင်္ဂလာပါ\n"
+        "hello\n"
         "/teach what is the capital of Myanmar? | Naypyidaw\n"
         "what is the capital of Myanmar?\n"
         "/todo buy a book\n"
@@ -59,48 +55,16 @@ SCENARIOS = {
 }
 
 
-def segments(line):
-    """Split a line into (text, is_myanmar) runs."""
-    out = []
-    buf = ""
-    cur = None
-    for ch in line:
-        is_mm = bool(MY_RE.match(ch))
-        if cur is None:
-            cur = is_mm
-            buf = ch
-        elif is_mm == cur:
-            buf += ch
-        else:
-            out.append((buf, cur))
-            buf = ch
-            cur = is_mm
-    if buf:
-        out.append((buf, cur))
-    return out
-
-
 def get_fonts(bold=False):
-    return (
-        ImageFont.truetype(MYANMAR_BOLD if bold else MYANMAR, FONT_SIZE),
-        ImageFont.truetype(MONO_BOLD if bold else MONO, FONT_SIZE),
-    )
+    return ImageFont.truetype(MONO_BOLD if bold else MONO, FONT_SIZE)
 
 
 def line_width(draw, line, bold=False):
-    mm_font, mono_font = get_fonts(bold)
-    w = 0
-    for text, is_mm in segments(line):
-        w += draw.textlength(text, font=mm_font if is_mm else mono_font)
-    return w
+    return draw.textlength(line, font=get_fonts(bold))
 
 
 def draw_line(draw, x, y, line, color, bold=False):
-    mm_font, mono_font = get_fonts(bold)
-    for text, is_mm in segments(line):
-        font = mm_font if is_mm else mono_font
-        draw.text((x, y), text, font=font, fill=color)
-        x += draw.textlength(text, font=font)
+    draw.text((x, y), line, font=get_fonts(bold), fill=color)
 
 
 def colorize(line, in_banner_art):
@@ -140,14 +104,10 @@ def render(text, out_path):
         # colour the "Octo > " / "You > " prefixes like the app does
         for prefix, pcolor in (("Octo > ", RED), ("You > ", GOLD)):
             if ln.startswith(prefix):
-                draw_line(draw, PAD_X, y, prefix, pcolor, bold=False)
-                rest = ln[len(prefix):]
-                mm_font, mono_font = get_fonts(bold)
-                x = PAD_X + draw.textlength(prefix, font=mono_font)
-                for text, is_mm in segments(rest):
-                    font = mm_font if is_mm else mono_font
-                    draw.text((x, y), text, font=font, fill=color)
-                    x += draw.textlength(text, font=font)
+                font = get_fonts(bold)
+                draw.text((PAD_X, y), prefix, font=font, fill=pcolor)
+                x = PAD_X + draw.textlength(prefix, font=font)
+                draw.text((x, y), ln[len(prefix):], font=font, fill=color)
                 break
         else:
             draw_line(draw, PAD_X, y, ln, color, bold)
@@ -172,7 +132,6 @@ def run_scenario(stdin_text):
 
 
 def main():
-    print("raqm (Myanmar shaping) available:", features.check("raqm"))
     os.makedirs(OUT_DIR, exist_ok=True)
     for name, stdin_text in SCENARIOS.items():
         out_path = os.path.join(OUT_DIR, name)

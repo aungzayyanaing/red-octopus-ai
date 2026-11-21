@@ -18,7 +18,7 @@ MEMORY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "memory.j
 MAX_HISTORY = 100
 
 DEFAULT_DATA = {
-    "user": {"name": None, "lang": "mm"},
+    "user": {"name": None, "lang": "en"},
     "facts": {},
     "learned": {},
     "notes": [],
@@ -42,6 +42,9 @@ class Memory:
             merged = json.loads(json.dumps(DEFAULT_DATA))
             merged.update(data)
             merged["user"] = {**DEFAULT_DATA["user"], **data.get("user", {})}
+            # Octo is English only — migrate any old Burmese setting.
+            if merged["user"].get("lang") != "en":
+                merged["user"]["lang"] = "en"
             merged["facts"] = data.get("facts", {})
             merged["learned"] = data.get("learned", {})
             merged["notes"] = data.get("notes", [])
@@ -67,7 +70,7 @@ class Memory:
         lines = ["# Octo Memory", ""]
         lines.append("## About you")
         lines.append("- Name: %s" % (d["user"].get("name") or "(unknown)"))
-        lines.append("- Language: %s" % d["user"].get("lang", "mm"))
+        lines.append("- Language: %s" % d["user"].get("lang", "en"))
         lines.append("")
         lines.append("## Facts")
         if d["facts"]:
@@ -124,14 +127,14 @@ class Memory:
         return self.data["user"].get("name")
 
     def set_lang(self, lang):
-        if lang in ("mm", "en"):
+        if lang == "en":
             self.data["user"]["lang"] = lang
             self.save()
             return True
         return False
 
     def get_lang(self):
-        return self.data["user"].get("lang", "mm")
+        return self.data["user"].get("lang", "en")
 
     # ------------------------------------------------------------------
     # facts

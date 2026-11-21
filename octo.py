@@ -181,12 +181,6 @@ def banner(full_ai):
 
 def greet(memory):
     name = memory.get_name()
-    lang = memory.get_lang()
-    if lang == "mm":
-        if name:
-            return "မင်္ဂလာပါ၊ %s။ ကျွန်တော် Octo ပါ။ ဘာကူညီပေးရမလဲ။" % name
-        return ("မင်္ဂလာပါ။ ကျွန်တော် Octo ပါ။ အနီရောင် ရေဘဝဲ AI လက်ထောက်။ "
-                "စကားပြောချင်ရင် ရိုက်ထည့်လိုက်ပါ။ /name <နာမည်> နဲ့ နာမည်ပြောပေးလို့လည်း ရပါတယ်။")
     if name:
         return "Hello, %s! I am Octo. What can I do for you?" % name
     return ("Hello! I am Octo, your red octopus AI assistant. "
@@ -241,9 +235,8 @@ def main():
                 user_text = input(prompt)
             except EOFError:
                 print()
-                print(color("Octo > ", RED) + ("ပြန်လာခဲ့ပါ။ ကျွန်တော် ဒီမှာပဲ စောင့်နေမယ်။"
-                      if ctx.lang == "mm" else
-                      "Goodbye! I will be right here when you come back."))
+                print(color("Octo > ", RED) +
+                      "Goodbye! I will be right here when you come back.")
                 break
             if not sys.stdin.isatty():
                 # Piped input is not echoed by the terminal; echo it so a

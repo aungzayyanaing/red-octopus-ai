@@ -4,7 +4,7 @@
 
 **A JARVIS-style AI chatbot that lives in your terminal.**
 Talk to it in PowerShell or Terminal, teach it things, and it remembers —
-even after you close it. Burmese first, English too.
+even after you close it. English only.
 
 > Honest note: Octo is **not** ChatGPT and not a trained model. Its built-in
 > brain works fully offline. For open questions it can use **5 free AI APIs**
@@ -36,7 +36,7 @@ Real output from the app — no mockups.
 
 | Tool | What it does |
 |---|---|
-| Chat | Talk in Burmese or English; small talk, time, date, jokes |
+| Chat | Talk in English; small talk, time, date, jokes |
 | Memory | Remembers your name, facts, answers you teach, notes, todos — survives restarts (`memory.json` + readable `MEMORY.md`) |
 | Teach | `/teach question \| answer` — Octo answers it forever after |
 | Improve | `/improve` finds questions Octo could not answer and saves them as lessons |
@@ -128,19 +128,19 @@ function octo { python C:\path\to\red-octopus-ai\octo.py $args }
 | Command | What it does | Example | What appears |
 |---|---|---|---|
 | `/help` | Show all commands | `/help` | The command list |
-| `/time` | Current time | `/time` | `အခု အချိန်က 07:29 PM ပါ။` |
-| `/date` | Today's date | `/date` | `ဒီနေ့က Friday, November 20, 2026 ပါ။` |
+| `/time` | Current time | `/time` | `It is 07:29 PM now.` |
+| `/date` | Today's date | `/date` | `Today is Friday, November 20, 2026.` |
 | `/calc <expr>` | Calculate | `/calc 12*8+5` | `12*8+5 = 101` |
-| `/note <text>` | Save a note | `/note meeting at 9 AM` | `မှတ်စု #1 သိမ်းပြီးပါပြီ။` |
+| `/note <text>` | Save a note | `/note meeting at 9 AM` | `Note #1 saved.` |
 | `/notes` | List notes | `/notes` | Your saved notes |
-| `/remember <key> = <value>` | Remember a fact | `/remember favorite color = red` | `မှတ်ပြီးပါပြီ။` |
+| `/remember <key> = <value>` | Remember a fact | `/remember favorite color = red` | `Remembered: "favorite color = red".` |
 | `/recall [word]` | Search remembered facts | `/recall color` | `favorite color = red` |
 | `/forget <word>` | Delete remembered things | `/forget color` | `Deleted 1 item(s).` |
-| `/teach <q> \| <a>` | Teach an answer | `/teach what is the capital of Myanmar? \| Naypyidaw` | `သင်ပြီးပါပြီ။` |
+| `/teach <q> \| <a>` | Teach an answer | `/teach what is the capital of Myanmar? \| Naypyidaw` | `Taught. When asked "what is the capital of myanmar?" I will answer "Naypyidaw".` |
 | `/memory` | Show what Octo remembers | `/memory` | Name, facts, notes, todos, lessons |
 | `/brain` | Show brain chips and memory count | `/brain` | Memories: 300 / 1,000,000 |
 | `/llm [provider]` | Show free AI providers / test one | `/llm groq` | `groq works (1.2 s). Reply: OK` |
-| `/name <name>` | Tell Octo your name | `/name Aung` | `မှတ်ပြီးပါပြီ၊ Aung။` |
+| `/name <name>` | Tell Octo your name | `/name Aung` | `Nice to meet you, Aung! I will remember your name.` |
 | `/todo <text>` | Add a todo | `/todo buy a book` | `Todo #1 added.` |
 | `/todos` | List todos | `/todos` | `[ ] buy a book` |
 | `/done <n>` | Mark a todo done | `/done 1` | `Done: "buy a book".` |
@@ -154,7 +154,7 @@ function octo { python C:\path\to\red-octopus-ai\octo.py $args }
 | `/clear` | Clear the screen | `/clear` | Empty screen |
 | `/exit` | Quit | `/exit` | Goodbye |
 
-You can also just chat: `မင်္ဂလာပါ`, `hello`, `how are you`, `what time is it?`
+You can also just chat: `hello`, `how are you`, `what time is it?`
 
 ---
 
@@ -222,7 +222,6 @@ local `.env` file only.
 | `python: command not found` (Windows) | Install Python from python.org and tick **"Add Python to PATH"** during setup. Or use `py octo.py`. |
 | `python3: command not found` (macOS/Linux) | Install Python 3.10+ with your package manager (`brew install python`, `sudo apt install python3`). |
 | Colours look wrong / boxes instead of art (Windows) | Use **Windows Terminal** (Microsoft Store, free). The old console does not do ANSI colours well. |
-| Burmese text shows as boxes | Use a terminal with a Myanmar font (Windows Terminal, macOS Terminal and most Linux terminals already do). |
 | `Full AI mode` never appears | With no keys, only Pollinations is ready — it still counts as full AI. If the banner says offline, `.env` is not being read: run from the project folder. |
 | A provider answers fail / empty | The key may be wrong, expired, or out of quota — `/llm` shows which keys are set. Octo tries the next provider, then falls back to the offline brain automatically. |
 | Pollinations is slow / says "try again" | Its free anonymous lane allows about 1 request per 45 seconds. Wait a minute, or add a Groq key (fastest free tier). |

@@ -1,0 +1,17 @@
+{
+  "total": 300,
+  "per_kind": {
+    "general": 50,
+    "business": 50,
+    "science": 50,
+    "daily": 50,
+    "health": 50,
+    "myanmar": 50
+  },
+  "capacity": 1000000,
+  "goal": 950000,
+  "per_kind_goal": 150000,
+  "last_batch_id": "batch-001",
+  "last_batch_added": 0,
+  "malformed_lines": 0
+}
