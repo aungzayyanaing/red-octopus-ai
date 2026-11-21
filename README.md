@@ -7,9 +7,10 @@ Talk to it in PowerShell or Terminal, teach it things, and it remembers —
 even after you close it. Burmese first, English too.
 
 > Honest note: Octo is **not** ChatGPT and not a trained model. Its built-in
-> brain works fully offline. If you add your **own** free Gemini API key,
-> open questions are answered by Gemini — like a full AI. No key is ever
-> bundled with the project.
+> brain works fully offline. For open questions it can use **5 free AI APIs**
+> (Groq, OpenRouter, Mistral, NVIDIA, Pollinations — **no Gemini**). Four
+> need your own free key; Pollinations needs no key at all and works out
+> of the box. No key is ever bundled with the project.
 
 ---
 
@@ -44,7 +45,8 @@ Real output from the app — no mockups.
 | Calculate | `/calc 12*8+5` — safe arithmetic, no `eval` tricks |
 | Notes | `/note`, `/notes` — quick notes that persist |
 | One-shot mode | `python octo.py "question"` — one answer, then exit (for scripts) |
-| Full AI mode | With your own Gemini key, open questions go to Gemini with your memory as context |
+| Full AI mode | 5 free APIs (Groq, OpenRouter, Mistral, NVIDIA, Pollinations) — open questions go to the first provider that answers, with your memory as context |
+| `/llm` | Show provider status, test one with `/llm groq` |
 | Personality | Edit `SOUL.md` to change how Octo talks |
 
 ---
@@ -136,6 +138,8 @@ function octo { python C:\path\to\red-octopus-ai\octo.py $args }
 | `/forget <word>` | Delete remembered things | `/forget color` | `Deleted 1 item(s).` |
 | `/teach <q> \| <a>` | Teach an answer | `/teach what is the capital of Myanmar? \| Naypyidaw` | `သင်ပြီးပါပြီ။` |
 | `/memory` | Show what Octo remembers | `/memory` | Name, facts, notes, todos, lessons |
+| `/brain` | Show brain chips and memory count | `/brain` | Memories: 300 / 1,000,000 |
+| `/llm [provider]` | Show free AI providers / test one | `/llm groq` | `groq works (1.2 s). Reply: OK` |
 | `/name <name>` | Tell Octo your name | `/name Aung` | `မှတ်ပြီးပါပြီ၊ Aung။` |
 | `/todo <text>` | Add a todo | `/todo buy a book` | `Todo #1 added.` |
 | `/todos` | List todos | `/todos` | `[ ] buy a book` |
@@ -177,21 +181,37 @@ Your memory is never uploaded anywhere. `.gitignore` keeps `memory.json`,
 
 ---
 
-## Full AI mode — your own Gemini key
+## Full AI mode — 5 free APIs, no Gemini
 
 The offline brain answers small talk, time, calculations and everything
 you taught it. For open questions ("explain quantum physics", "write a
-poem"), add your **own** free Gemini key:
+poem"), Octo tries 5 free AI providers in order until one answers —
+like a full AI. **Pollinations needs no key**, so full-AI mode works
+immediately with zero setup. Add your own free keys to unlock the
+faster providers:
 
-1. Create a key at https://aistudio.google.com/apikey (free, your own
-   Google account — Octo never sees or stores anyone else's key).
-2. Open `.env` and set `GEMINI_API_KEY=your_key_here`.
-3. Restart Octo. The banner will say **"Full AI mode — Gemini connected"**.
+| Provider | Key (your own, free) | Model | Free tier |
+|---|---|---|---|
+| Groq | `GROQ_API_KEY` — https://console.groq.com/keys | `openai/gpt-oss-120b` | No card: 30 req/min, 1,000 req/day |
+| OpenRouter | `OPENROUTER_API_KEY` — https://openrouter.ai/keys | `meta-llama/llama-3.3-70b-instruct:free` | Free `:free` models: 20 req/min, 50 req/day |
+| Mistral | `MISTRAL_API_KEY` — https://console.mistral.ai/api-keys | `mistral-small-latest` | Free experiment tier: ~1 req/sec |
+| NVIDIA NIM | `NVIDIA_API_KEY` — https://build.nvidia.com | `meta/llama-3.3-70b-instruct` | Free tier, no card: 40 req/min |
+| Pollinations | **No key needed** | `gpt-oss-20b` | Free anonymous lane: ~1 req per 45 sec |
 
-With a key, Octo sends your question to Gemini together with your name,
-your remembered facts and recent conversation — so its answers know you.
-Without a key (or if the request fails), Octo falls back to the offline
-brain and keeps working. The key stays in your local `.env` file only.
+1. Copy `.env.example` to `.env` and paste your own keys there.
+2. Restart Octo. The banner lists the providers that are ready.
+3. Check status any time with `/llm`, test one with `/llm groq`.
+
+Octo sends your question to the provider together with your name,
+your remembered facts and recent conversation — so its answers know
+you. If every provider fails (no network, rate limit, bad key), Octo
+falls back to the offline brain and keeps working. Keys stay in your
+local `.env` file only.
+
+**Tuning:** change the try order with `OCTO_LLM_ORDER` in `.env`
+(e.g. `OCTO_LLM_ORDER=pollinations,groq`), pin one provider with
+`OCTO_LLM_PROVIDER=groq`, or change a model with
+`OCTO_GROQ_MODEL=llama-3.3-70b-versatile`.
 
 ---
 
@@ -203,8 +223,9 @@ brain and keeps working. The key stays in your local `.env` file only.
 | `python3: command not found` (macOS/Linux) | Install Python 3.10+ with your package manager (`brew install python`, `sudo apt install python3`). |
 | Colours look wrong / boxes instead of art (Windows) | Use **Windows Terminal** (Microsoft Store, free). The old console does not do ANSI colours well. |
 | Burmese text shows as boxes | Use a terminal with a Myanmar font (Windows Terminal, macOS Terminal and most Linux terminals already do). |
-| `Full AI mode` never appears | Check `.env` has `GEMINI_API_KEY=` with your real key (not `your_own_key_here`), no quotes, no spaces around `=`. |
-| Gemini answers fail / empty | The key may be wrong, expired, or out of quota. Check at https://aistudio.google.com/apikey. Octo falls back to the offline brain automatically. |
+| `Full AI mode` never appears | With no keys, only Pollinations is ready — it still counts as full AI. If the banner says offline, `.env` is not being read: run from the project folder. |
+| A provider answers fail / empty | The key may be wrong, expired, or out of quota — `/llm` shows which keys are set. Octo tries the next provider, then falls back to the offline brain automatically. |
+| Pollinations is slow / says "try again" | Its free anonymous lane allows about 1 request per 45 seconds. Wait a minute, or add a Groq key (fastest free tier). |
 | Octo forgot everything | `memory.json` was deleted or you ran it from another folder. Always run from the project folder so it finds the same `memory.json`. |
 | `ModuleNotFoundError` | You are running a file from the wrong folder. `cd` into the project folder first. |
 
@@ -213,14 +234,15 @@ brain and keeps working. The key stays in your local `.env` file only.
 ## FAQ
 
 **Is Octo really AI?**
-Octo has two brains: a local rule-based brain that works offline, and an
-optional Gemini backend (your own key) that answers like a full AI. It is
-not a trained model and it does not claim to be ChatGPT.
+Octo has two brains: a local rule-based brain that works offline, and
+5 free API providers (your own keys, or Pollinations with no key) that
+answer like a full AI. It is not a trained model and it does not claim
+to be ChatGPT.
 
 **Does Octo send my data anywhere?**
-No — unless you add a Gemini key, in which case only your question and
-your remembered facts go to Google's Gemini API, exactly like using the
-Gemini website. With no key, nothing leaves your computer.
+No — unless a free provider answers, in which case only your question
+and your remembered facts go to that provider, exactly like using its
+website. With no network call, nothing leaves your computer.
 
 **Can I change Octo's personality?**
 Yes — edit `SOUL.md`. In full-AI mode the new personality is used
@@ -242,10 +264,10 @@ red-octopus-ai/
 ├── octo.py            entry point — terminal UI, animated octopus, REPL
 ├── brain.py           offline brain — intents, small talk, calculator, jokes
 ├── memory.py          persistent memory — JSON + MEMORY.md + todos + checkpoints
-├── llm.py             optional Gemini backend (stdlib only, your key only)
+├── llm.py             5 free AI providers (stdlib only, your keys only)
 ├── commands.py        every /command
 ├── SOUL.md            Octo's personality (editable)
-├── .env.example       template for your own Gemini key (optional)
+├── .env.example       template for your free API keys (optional)
 ├── requirements.txt   empty on purpose — standard library only
 ├── make_screenshots.py   renders docs/screenshots/*.png from real output
 ├── assets/

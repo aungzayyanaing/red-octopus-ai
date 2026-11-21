@@ -8,8 +8,9 @@ macOS/Linux terminals with Python 3.10+.
     python octo.py "your question"    one-shot answer and exit
 
 The octopus answers with its offline brain by default. If you put your
-OWN Gemini API key in .env (GEMINI_API_KEY), open questions are
-answered by Gemini instead — like a full AI. No key is ever bundled.
+OWN free API key in .env (Groq, OpenRouter, Mistral or NVIDIA — or use
+Pollinations, which needs no key at all), open questions are answered
+by a real AI instead — like a full AI. No key is ever bundled.
 
 Memory lives on your own computer (memory.json + MEMORY.md) and
 survives restarts. See README.md for the full guide.
@@ -53,43 +54,64 @@ def color(text, code):
 # ----------------------------------------------------------------------
 # animated red octopus — 3 frames (tentacles wave, eyes blink)
 # ----------------------------------------------------------------------
-FRAME_A = [
-    r"      .-\"\"-.",
-    r"     / o  o \ ",
-    r"    |        |",
-    r"    |  ____  |",
-    r"     \      /",
-    r"      |    |",
-    r"     /||  ||\ ",
-    r"    | ||  || |",
-    r"    | ||  || |",
-    r"     \||  ||/",
+FRAME_A = [  # eyes open, tentacles centered
+    r'        .--""""--.        ',
+    r'       /          \\       ',
+    r'      |  \\O    O/  |      ',
+    r'      |            |      ',
+    r'      |   ______   |      ',
+    r'       \\          /       ',
+    r'        |        |        ',
+    r'     __/          \\__     ',
+    r'    ||    ||  ||    ||    ',
+    r'    ||    ||  ||    ||    ',
+    r'   /||    ||  ||    ||\\   ',
+    r'   | |    ||  ||    | |   ',
+    r'   | |    ||  ||    | |   ',
+    r'    \\|    ||  ||    |/    ',
+    r'     |    ||  ||    |     ',
+    r'    _|    ||  ||    |_    ',
+    r'   /      ||  ||      \\   ',
 ]
 
 FRAME_B = [  # eyes blink, tentacles sway left
-    r"      .-\"\"-.",
-    r"     / -  - \ ",
-    r"    |        |",
-    r"    |  ____  |",
-    r"     \      /",
-    r"      |    |",
-    r"    /||  ||\ ",
-    r"   | ||  || |",
-    r"   | ||  || |",
-    r"    \||  ||/",
+    r'        .--""""--.        ',
+    r'       /          \\       ',
+    r'      |  \\-    -/  |      ',
+    r'      |            |      ',
+    r'      |   ______   |      ',
+    r'       \\          /       ',
+    r'        |        |        ',
+    r'     __/          \\__     ',
+    r'     ||    ||  ||    ||    ',
+    r'     ||    ||  ||    ||    ',
+    r'    /||    ||  ||    ||\\   ',
+    r'    | |    ||  ||    | |   ',
+    r'    | |    ||  ||    | |   ',
+    r'     \\|    ||  ||    |/    ',
+    r'      |    ||  ||    |     ',
+    r'     _|    ||  ||    |_    ',
+    r'    /      ||  ||      \\   ',
 ]
 
 FRAME_C = [  # eyes open, tentacles sway right
-    r"      .-\"\"-.",
-    r"     / o  o \ ",
-    r"    |        |",
-    r"    |  ____  |",
-    r"     \      /",
-    r"      |    |",
-    r"     /||  ||\ ",
-    r"     | ||  || |",
-    r"     | ||  || |",
-    r"      \||  ||/",
+    r'        .--""""--.        ',
+    r'       /          \\       ',
+    r'      |  \\O    O/  |      ',
+    r'      |            |      ',
+    r'      |   ______   |      ',
+    r'       \\          /       ',
+    r'        |        |        ',
+    r'     __/          \\__     ',
+    r'   ||    ||  ||    ||     ',
+    r'   ||    ||  ||    ||     ',
+    r'  /||    ||  ||    ||\\    ',
+    r'  | |    ||  ||    | |    ',
+    r'  | |    ||  ||    | |    ',
+    r'   \\|    ||  ||    |/     ',
+    r'    |    ||  ||    |      ',
+    r'   _|    ||  ||    |_     ',
+    r'  /      ||  ||      \\    ',
 ]
 
 FRAMES = [FRAME_A, FRAME_B, FRAME_C]
@@ -145,8 +167,11 @@ def clear_screen():
 
 
 def banner(full_ai):
-    mode = ("Full AI mode — Gemini connected" if full_ai
-            else "Offline brain mode — add your Gemini key in .env for full AI")
+    if full_ai:
+        ready = [p["name"] for p in llm.available_providers()]
+        mode = "Full AI mode — free providers ready: %s" % ", ".join(ready)
+    else:
+        mode = "Offline brain mode — add a free API key in .env for full AI (/llm to see providers)"
     print(color("=" * 52, GOLD))
     print(color("  OCTO  —  Red Octopus AI", "\033[1;91m"))
     print(color("  Your terminal AI assistant. Type /help to begin.", CYAN))
@@ -176,8 +201,8 @@ def one_shot(question):
     """
     memory = Memory()
     reply = None
-    if llm.has_key():
-        reply = llm.ask_gemini(question, memory)
+    if llm.has_llm():
+        reply, _used = llm.ask_llm_tracked(question, memory)
     if reply is None:
         reply = brain.respond(question, memory)
     memory.add_turn("user", question)
@@ -197,7 +222,7 @@ def main():
         return
 
     memory = Memory()
-    full_ai = llm.has_key()
+    full_ai = llm.has_llm()
     ctx = SimpleNamespace(memory=memory, lang=memory.get_lang())
 
     if INTERACTIVE:
@@ -244,7 +269,7 @@ def main():
             thinking()
             reply = None
             if full_ai:
-                reply = llm.ask_gemini(user_text, memory)
+                reply, _used = llm.ask_llm_tracked(user_text, memory)
             if reply is None:
                 reply = brain.respond(user_text, memory)
             type_out(color("Octo > ", RED) + reply)

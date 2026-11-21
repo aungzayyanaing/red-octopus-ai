@@ -5,7 +5,10 @@ dispatch(text, ctx) -> (reply, should_exit)
   reply "__CLEAR__" means: clear the screen (handled by octo.py).
 """
 
+import bank
 import brain
+import llm
+import time
 
 HELP_MM = """Octo သုံးနည်း — Command များ
 
@@ -20,6 +23,8 @@ HELP_MM = """Octo သုံးနည်း — Command များ
   /forget <စကားလုံး>  မှတ်ထားတာကို ဖျက်တယ်
   /teach <မေးခွန်း> | <အဖြေ>   အဖြေ သင်ပေးတယ် (ဥပမာ /teach မြန်မာနိုင်ငံရဲ့မြို့တော်က ဘာလဲ | နေပြည်တော်)
   /memory            Octo ဘာတွေ မှတ်ထားလဲ ပြတယ်
+  /brain             ဦးနှောက် chips နဲ့ မှတ်ဉာဏ် အရေအတွက် ပြတယ်
+  /llm [provider]    Free AI provider တွေ ပြတယ် / စမ်းတယ် (ဥပမာ /llm groq)
   /name <နာမည်>      နာမည် မှတ်တယ် (ဥပမာ /name အောင်)
   /todo <စာ>         Todo ထည့်တယ် (ဥပမာ /todo စာအုပ်ဝယ်ရန်)
   /todos             Todo တွေ ပြတယ်
@@ -51,6 +56,8 @@ HELP_EN = """How to use Octo — Commands
   /forget <word>     Delete remembered facts, answers or notes
   /teach <question> | <answer>   Teach an answer (e.g. /teach what is the capital of Myanmar? | Naypyidaw)
   /memory            Show what Octo remembers about you
+  /brain             Show brain chips and memory count
+  /llm [provider]    Show free AI providers / test one (e.g. /llm groq)
   /name <name>       Tell Octo your name (e.g. /name Aung)
   /todo <text>       Add a todo (e.g. /todo buy a book)
   /todos             List your todos
@@ -217,9 +224,42 @@ def dispatch(text, ctx):
         lines.append(_t(lang, "  Todo (မပြီးသေးတာ): %d ခု" % s["todos"],
                          "  Todos pending: %d" % s["todos"]))
         lines.append(_t(lang, "  Lesson: %d ခု" % s["lessons"], "  Lessons: %d" % s["lessons"]))
+        lines.extend(bank.gauge_lines(lang))
         lines.append(_t(lang, "  စကားပြောမှတ်တမ်း: %d ကြောင်း" % s["history_turns"],
                          "  Conversation turns: %d" % s["history_turns"]))
         return "\n".join(lines), False
+
+    if cmd == "/brain":
+        return "\n".join(bank.brain_lines(lang)), False
+
+    if cmd == "/llm":
+        if not arg:
+            lines = [_t(lang, "Free AI provider များ (5 ခု — Gemini မပါဘူး):",
+                         "Free AI providers (5 — no Gemini):")]
+            for name, ready, model, note in llm.provider_status():
+                mark = "[+]" if ready else "[ ]"
+                lines.append("  %s %-11s %s (%s)" % (mark, name, model, note))
+            last = llm.last_used_provider()
+            if last:
+                lines.append(_t(lang, "  နောက်ဆုံး အဖြေပေးခဲ့တာ: %s" % last,
+                                 "  Last provider that answered: %s" % last))
+            lines.append(_t(lang, "  Key ထည့်ဖို့ .env ကို ပြင်ပါ။ အစဉ်လိုက် ပြောင်းချင်ရင် OCTO_LLM_ORDER=groq,pollinations လို့ ရေးပါ။",
+                             "  Add keys in .env. Reorder with OCTO_LLM_ORDER=groq,pollinations."))
+            return "\n".join(lines), False
+        name = arg.strip().lower()
+        if name not in ("groq", "openrouter", "mistral", "nvidia", "pollinations"):
+            return _t(lang, "အဲ့ဒီ provider ကို မသိပါဘူး။ သုံးလို့ရတာက groq, openrouter, mistral, nvidia, pollinations ပါ။",
+                      "Unknown provider. Available: groq, openrouter, mistral, nvidia, pollinations."), False
+        start = time.time()
+        reply, used = llm.ask_provider(
+            "Say OK in one short sentence." if lang == "en" else
+            "OK လို့ စာကြောင်းအတိုတစ်ကြောင်းနဲ့ ပြောပါ။", mem)
+        took = time.time() - start
+        if reply:
+            return _t(lang, "%s အလုပ်လုပ်ပါတယ် (%.1f စက္ကန့်)။ အဖြေ: %s" % (used, took, reply),
+                      "%s works (%.1f s). Reply: %s" % (used, took, reply)), False
+        return _t(lang, "%s က အခု အဖြေမပေးနိုင်ပါဘူး။ Key စစ်ပါ၊ ဒါမှမဟုတ် အခြား provider ကို စမ်းပါ။" % name,
+                  "%s is not answering right now. Check the key or try another provider." % name), False
 
     if cmd == "/todo":
         if not arg:

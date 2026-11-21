@@ -1,4 +1,4 @@
 # Red Octopus AI needs nothing beyond the Python standard library.
 # This file is intentionally empty — python octo.py just works.
-# Optional: none. If you add a Gemini key, it is read from .env
+# Optional: none. If you add a free API key, it is read from .env
 # with the standard library only (no python-dotenv needed).

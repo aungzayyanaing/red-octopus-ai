@@ -14,6 +14,8 @@ import datetime
 import random
 import re
 
+import bank
+
 MYANMAR_RE = re.compile(r"[\u1000-\u109F]")
 
 JOKES_MM = [
@@ -62,8 +64,8 @@ PATTERNS = [
      None,  # handled by date function below
      None),
     (["ရာသီဥတု", "weather"],
-     "ရာသီဥတုကို အင်တာနက်မရှိဘဲ စစ်လို့မရပါဘူး။ Gemini key ထည့်ထားရင် မေးကြည့်လို့ ရပါတယ်။",
-     "I cannot check the weather offline. If you add a Gemini key, ask me and I will look it up."),
+     "ရာသီဥတုကို အင်တာနက်မရှိဘဲ စစ်လို့မရပါဘူး။ Free API key ထည့်ထားရင် မေးကြည့်လို့ ရပါတယ်။",
+     "I cannot check the weather offline. If you add a free API key, ask me and I will look it up."),
     (["bye", "goodbye", "good night", "သွားတော့မယ်", "နှုတ်ဆက်ပါတယ်"],
      "ပြန်လာခဲ့ပါ။ ကျွန်တော် ဒီမှာပဲ စောင့်နေမယ်။",
      "Goodbye! I will be right here when you come back."),
@@ -168,9 +170,14 @@ def respond(text, memory):
         if any(k in lowered for k in keywords):
             return reply_mm if lang == "mm" else reply_en
 
-    # 5. joke request
+    # 5. memory bank — the big offline knowledge store
+    bank_answer = bank.lookup(text)
+    if bank_answer:
+        return bank_answer
+
+    # 6. joke request
     if any(k in lowered for k in ["joke", "ဟာသ", "ရယ်စရာ"]):
         return joke(lang)
 
-    # 6. fallback
+    # 7. fallback
     return fallback(lang)
