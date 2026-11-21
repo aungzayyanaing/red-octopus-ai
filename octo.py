@@ -17,6 +17,7 @@ survives restarts. See README.md for the full guide.
 """
 
 import os
+import re
 import sys
 import time
 from types import SimpleNamespace
@@ -39,6 +40,7 @@ GOLD = "\033[93m"
 GREEN = "\033[92m"
 DIM = "\033[90m"
 BOLD = "\033[1m"
+ORANGE = "\033[1;38;5;208m"
 RESET = "\033[0m"
 
 PLAIN = os.environ.get("OCTO_PLAIN") == "1"  # used by make_screenshots.py
@@ -49,6 +51,74 @@ def color(text, code):
     if PLAIN:
         return text
     return code + text + RESET
+
+
+# ----------------------------------------------------------------------
+# markdown rendering — the terminal cannot render Markdown, so raw
+# **bold** markers used to show up on screen. Convert them to ANSI
+# (bold / cyan) or strip them, so an answer never shows raw **.
+# ----------------------------------------------------------------------
+_MD_BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
+_MD_CODE_RE = re.compile(r"`([^`]+)`")
+_MD_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+_MD_ITALIC_RE = re.compile(r"(?<!\w)[*_]([^*_]+)[*_](?!\w)")
+
+
+def render_markdown(text):
+    """Render a Markdown reply as plain terminal text.
+
+    **bold** -> ANSI bold, `code` -> cyan, [text](url) -> text (url),
+    # headings -> bold text, * bullets -> - bullets, ``` fences are
+    dropped. Any stray ** left over is removed, never shown.
+    """
+    lines = []
+    in_fence = False
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            lines.append(line)
+            continue
+        m = re.match(r"^(#{1,6})\s+(.*)$", stripped)
+        if m:
+            line = m.group(2)
+            stripped = line
+        if re.match(r"^\*\s+", stripped):
+            line = "- " + stripped[2:]
+        line = _MD_LINK_RE.sub(
+            lambda mm: "%s (%s)" % (mm.group(1), mm.group(2)), line)
+        line = _MD_BOLD_RE.sub(
+            lambda mm: color(mm.group(1), BOLD), line)
+        line = _MD_CODE_RE.sub(
+            lambda mm: color(mm.group(1), CYAN), line)
+        line = _MD_ITALIC_RE.sub(lambda mm: mm.group(1), line)
+        line = line.replace("**", "").replace("__", "")
+        lines.append(line)
+    return "\n".join(lines).strip("\n")
+
+
+# ----------------------------------------------------------------------
+# big block-letter name banner — OCTO in chunky orange block letters,
+# the way CLAUDE CODE shows its name on startup.
+# ----------------------------------------------------------------------
+NAME_BANNER = [
+    r" ██████   ██████  ████████  ██████ ",
+    r"██    ██ ██    ██    ██    ██    ██",
+    r"██    ██ ██          ██    ██    ██",
+    r"██    ██ ██          ██    ██    ██",
+    r"██    ██ ██          ██    ██    ██",
+    r"██    ██ ██    ██    ██    ██    ██",
+    r" ██████   ██████     ██     ██████ ",
+]
+
+
+def show_name_banner():
+    """Print the big OCTO block-letter banner."""
+    for line in NAME_BANNER:
+        print(color("       " + line, ORANGE))
+    print(color("              RED OCTOPUS AI", GOLD))
 
 
 # ----------------------------------------------------------------------
@@ -201,7 +271,7 @@ def one_shot(question):
         reply = brain.respond(question, memory)
     memory.add_turn("user", question)
     memory.add_turn("octo", reply)
-    print(reply)
+    print(render_markdown(reply))
 
 
 def main():
@@ -221,6 +291,7 @@ def main():
 
     if INTERACTIVE:
         clear_screen()
+    show_name_banner()
     show_octopus(animated=True)
     banner(full_ai)
     print()
@@ -265,7 +336,7 @@ def main():
                 reply, _used = llm.ask_llm_tracked(user_text, memory)
             if reply is None:
                 reply = brain.respond(user_text, memory)
-            type_out(color("Octo > ", RED) + reply)
+            type_out(color("Octo > ", RED) + render_markdown(reply))
             memory.add_turn("octo", reply)
 
         except KeyboardInterrupt:

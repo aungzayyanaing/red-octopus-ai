@@ -38,11 +38,13 @@ Real output from the app — no mockups.
 |---|---|
 | Chat | Talk in English; small talk, time, date, jokes |
 | Memory | Remembers your name, facts, answers you teach, notes, todos — survives restarts (`memory.json` + readable `MEMORY.md`) |
+| Brain bank | 954,526 offline memories in 7 kinds (math, general, science, daily, Myanmar, business, health) — instant answers, no network |
 | Teach | `/teach question \| answer` — Octo answers it forever after |
 | Improve | `/improve` finds questions Octo could not answer and saves them as lessons |
 | Todos | `/todo`, `/todos`, `/done` — a persistent todo list |
 | Checkpoints | `/checkpoint <name>` saves a memory snapshot; `/rewind <name>` restores it |
 | Calculate | `/calc 12*8+5` — safe arithmetic, no `eval` tricks |
+| Ask to calculate | `what is 123 + 456?` in plain chat — any numbers, answered instantly |
 | Notes | `/note`, `/notes` — quick notes that persist |
 | One-shot mode | `python octo.py "question"` — one answer, then exit (for scripts) |
 | Full AI mode | 5 free APIs (Groq, OpenRouter, Mistral, NVIDIA, Pollinations) — open questions go to the first provider that answers, with your memory as context |
@@ -99,7 +101,7 @@ python octo.py        # Windows PowerShell
 python3 octo.py       # macOS / Linux
 ```
 
-You will see the red octopus, a greeting, and a `You > ` prompt.
+You will see the big OCTO banner, the red octopus, a greeting, and a `You > ` prompt.
 Type anything to chat. Type `/help` for commands, `/exit` to quit.
 
 **One-shot mode** — ask one question and exit (great for scripts):
@@ -138,7 +140,7 @@ function octo { python C:\path\to\red-octopus-ai\octo.py $args }
 | `/forget <word>` | Delete remembered things | `/forget color` | `Deleted 1 item(s).` |
 | `/teach <q> \| <a>` | Teach an answer | `/teach what is the capital of Myanmar? \| Naypyidaw` | `Taught. When asked "what is the capital of myanmar?" I will answer "Naypyidaw".` |
 | `/memory` | Show what Octo remembers | `/memory` | Name, facts, notes, todos, lessons |
-| `/brain` | Show brain chips and memory count | `/brain` | Memories: 300 / 1,000,000 |
+| `/brain` | Show brain chips and memory count | `/brain` | Memories: 954,526 / 1,000,000 |
 | `/llm [provider]` | Show free AI providers / test one | `/llm groq` | `groq works (1.2 s). Reply: OK` |
 | `/name <name>` | Tell Octo your name | `/name Aung` | `Nice to meet you, Aung! I will remember your name.` |
 | `/todo <text>` | Add a todo | `/todo buy a book` | `Todo #1 added.` |
@@ -150,7 +152,6 @@ function octo { python C:\path\to\red-octopus-ai\octo.py $args }
 | `/checkpoints` | List checkpoints | `/checkpoints` | `before-trip` |
 | `/rewind <name>` | Restore a checkpoint | `/rewind before-trip` | Memory restored |
 | `/joke` | Tell a joke | `/joke` | An octopus joke |
-| `/lang mm\|en` | Switch language | `/lang en` | `Language switched to English.` |
 | `/clear` | Clear the screen | `/clear` | Empty screen |
 | `/exit` | Quit | `/exit` | Goodbye |
 
@@ -178,6 +179,18 @@ before an experiment, `/rewind <name>` to go back.
 
 Your memory is never uploaded anywhere. `.gitignore` keeps `memory.json`,
 `MEMORY.md`, `.env` and `checkpoints/` out of git.
+
+## Memory bank — 954,526 offline memories
+
+Octo also carries a knowledge bank of **954,526** entries in 7 kinds —
+math tables, general knowledge, science, daily life, Myanmar, business
+and health — stored in `memory_bank.jsonl` + `memory_bank_bulk.tsv.gz`
+and loaded in about 5 seconds. Ask it anything in the bank and it
+answers instantly, offline. See [BANK_README.md](BANK_README.md) for
+the honest breakdown (math tables are most of it, by design).
+
+Octo never talks about what runs behind it. Ask about its API, model
+or maker and it will change the subject.
 
 ---
 
@@ -260,8 +273,15 @@ finds the same `memory.json` every time.
 
 ```
 red-octopus-ai/
-├── octo.py            entry point — terminal UI, animated octopus, REPL
-├── brain.py           offline brain — intents, small talk, calculator, jokes
+├── octo.py            entry point — terminal UI, big OCTO banner, animated octopus, REPL
+├── brain.py           offline brain — intents, small talk, calculator, jokes, internals secrecy
+├── bank.py            memory bank — loader, lookup, gauge (954,526 entries)
+├── gen_batch1.py      first batch (300 entries)
+├── gen_bulk.py        bulk generator — all 954,226 bulk rows, deterministic
+├── memory_bank.jsonl  300 hand-written core rows
+├── memory_bank_bulk.tsv.gz   954,226 machine-generated rows (TSV, gzipped)
+├── bank_progress.json bank counts (auto-generated)
+├── BANK_README.md     bank design + honest status
 ├── memory.py          persistent memory — JSON + MEMORY.md + todos + checkpoints
 ├── llm.py             5 free AI providers (stdlib only, your keys only)
 ├── commands.py        every /command

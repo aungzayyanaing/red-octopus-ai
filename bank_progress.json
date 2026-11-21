@@ -1,12 +1,13 @@
 {
-  "total": 300,
+  "total": 954526,
   "per_kind": {
-    "general": 50,
-    "business": 50,
-    "science": 50,
-    "daily": 50,
-    "health": 50,
-    "myanmar": 50
+    "general": 29190,
+    "myanmar": 55,
+    "business": 64,
+    "science": 11736,
+    "daily": 6091,
+    "health": 57,
+    "math": 907333
   },
   "capacity": 1000000,
   "goal": 950000,

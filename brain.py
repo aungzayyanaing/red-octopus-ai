@@ -6,6 +6,10 @@ The brain checks, in order:
   2. facts the user told it to remember (/remember)
   3. built-in small talk, time/date, calculator, jokes
   4. a friendly "I don't know yet, teach me" fallback
+
+It never reveals what runs behind it. Questions about its API,
+model, provider, maker, or insides get a playful deflection and
+a change of subject — never an answer.
 """
 
 import ast
@@ -35,8 +39,6 @@ PATTERNS = [
      "I can chat, tell the time and date, calculate, keep notes, and learn what you teach me. Type /help to see every command."),
     (["thank", "thanks"],
      "You are welcome. Happy to help."),
-    (["who made you", "who created you", "creator"],
-     "I was created by Aung Zay Ya Naing (Thomas)."),
     (["i love you", "love you"],
      "I like you too, with all eight arms."),
     (["what time", "time is it"],
@@ -44,10 +46,39 @@ PATTERNS = [
     (["what date", "what day is it", "today"],
      None),  # handled by date function below
     (["weather"],
-     "I cannot check the weather offline. If you add a free API key, ask me and I will look it up."),
+     "I cannot check the weather offline. Ask me something I can do right here instead."),
     (["bye", "goodbye", "good night"],
      "Goodbye! I will be right here when you come back."),
 ]
+
+# Questions about what runs behind Octo (API, model, provider, maker,
+# training, internals). These are NEVER answered — deflect playfully
+# and change the subject. Checked before the patterns above, so the
+# old "who made you" answer can never leak through.
+DEFLECT_KEYWORDS = [
+    "what api", "which api", "api key",
+    "what model", "which model", "what llm", "which llm",
+    "are you a bot", "are you ai", "what bot",
+    "what powers you", "behind you",
+    "how do you work", "how are you built", "what are you built",
+    "who made you", "who created you", "who built you", "your creator",
+    "what technology", "what engine",
+    "gpt", "chatgpt", "claude", "gemini", "groq", "openrouter",
+    "pollinations", "mistral", "nvidia",
+    "system prompt", "training data", "trained on",
+]
+
+DEFLECT_REPLIES = [
+    "That is an octopus secret, and my tentacles are sealed. Ask me something I can actually do for you instead.",
+    "Nice try. My eight arms do the talking, not my wiring. What do you need help with?",
+    "I keep my insides to myself, like a good octopus keeps its ink. Shall we do something useful instead?",
+    "That is classified, even from me. I just work here. What can I help you with?",
+]
+
+
+def deflect():
+    """A playful non-answer for background/internals questions."""
+    return random.choice(DEFLECT_REPLIES)
 
 
 # ----------------------------------------------------------------------
@@ -133,6 +164,24 @@ def respond(text, memory):
         return tell_time()
     if _matches(lowered, ["what date", "what day is it", "today"]):
         return tell_date()
+
+    # 3b. background / internals questions — NEVER answered, deflect.
+    if _matches(lowered, DEFLECT_KEYWORDS):
+        return deflect()
+
+    # 3c. arithmetic ("what is 2 + 2?", "2 + 2") — instant, any numbers.
+    # Runs before the bank so out-of-range sums never wait on the bank.
+    m = re.match(r"^(?:what is|what's|calculate|calc)\s+(.+?)\??$", lowered)
+    expr = None
+    if m:
+        expr = m.group(1)
+    elif re.fullmatch(r"[0-9\s\.\+\-\*/\%\(\)]+", lowered):
+        expr = lowered
+    if expr and any(op in expr for op in "+-*/%"):
+        try:
+            return "%s." % safe_calc(expr)
+        except Exception:
+            pass
 
     # 4. built-in patterns
     for keywords, reply in PATTERNS:
