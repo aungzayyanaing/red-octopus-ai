@@ -18,7 +18,7 @@ even after you close it. English only.
 
 Real output from the app — no mockups.
 
-**Startup** — the octopus wakes up, greets you:
+**Startup** — Octo wakes up, greets you:
 
 ![Startup](docs/screenshots/01-startup.png)
 
@@ -101,7 +101,7 @@ python octo.py        # Windows PowerShell
 python3 octo.py       # macOS / Linux
 ```
 
-You will see the big OCTO banner, the red octopus, a greeting, and a `You > ` prompt.
+You will see the big red OCTO banner, the tiny red character, a greeting, and a `You > ` prompt.
 Type anything to chat. Type `/help` for commands, `/exit` to quit.
 
 **One-shot mode** — ask one question and exit (great for scripts):
@@ -135,10 +135,10 @@ function octo { python C:\path\to\red-octopus-ai\octo.py $args }
 | `/calc <expr>` | Calculate | `/calc 12*8+5` | `12*8+5 = 101` |
 | `/note <text>` | Save a note | `/note meeting at 9 AM` | `Note #1 saved.` |
 | `/notes` | List notes | `/notes` | Your saved notes |
-| `/remember <key> = <value>` | Remember a fact | `/remember favorite color = red` | `Remembered: favorite color is red.` |
+| `/remember <key> = <value>` | Remember a fact | `/remember favorite color = red` | `Remembered: "favorite color = red".` |
 | `/recall [word]` | Search remembered facts | `/recall color` | `favorite color = red` |
-| `/forget <word>` | Delete remembered things | `/forget color` | `Deleted 1 item(s) about "color".` |
-| `/teach <q> \| <a>` | Teach an answer | `/teach what is the capital of Myanmar? \| Naypyidaw` | `Learned! When you ask "what is the capital of Myanmar?" I will answer "Naypyidaw".` |
+| `/forget <word>` | Delete remembered things | `/forget color` | `Deleted 1 item(s).` |
+| `/teach <q> \| <a>` | Teach an answer | `/teach what is the capital of Myanmar? \| Naypyidaw` | `Taught. When asked "what is the capital of myanmar?" I will answer "Naypyidaw".` |
 | `/memory` | Show what Octo remembers | `/memory` | Name, facts, notes, todos, lessons |
 | `/brain` | Show brain chips and memory count | `/brain` | Memories: 954,526 / 1,000,000 |
 | `/llm [provider]` | Show free AI providers / test one | `/llm groq` | `groq works (1.2 s). Reply: OK` |
@@ -150,7 +150,7 @@ function octo { python C:\path\to\red-octopus-ai\octo.py $args }
 | `/lessons` | List saved lessons | `/lessons` | `Teach me: ...` |
 | `/checkpoint <name>` | Save a memory snapshot | `/checkpoint before-trip` | `Checkpoint "before-trip" saved.` |
 | `/checkpoints` | List checkpoints | `/checkpoints` | `before-trip` |
-| `/rewind <name>` | Restore a checkpoint | `/rewind before-trip` | Rewound to checkpoint "before-trip". |
+| `/rewind <name>` | Restore a checkpoint | `/rewind before-trip` | Memory restored |
 | `/joke` | Tell a joke | `/joke` | An octopus joke |
 | `/clear` | Clear the screen | `/clear` | Empty screen |
 | `/exit` | Quit | `/exit` | Goodbye |
@@ -236,7 +236,7 @@ local `.env` file only.
 | `python3: command not found` (macOS/Linux) | Install Python 3.10+ with your package manager (`brew install python`, `sudo apt install python3`). |
 | Colours look wrong / boxes instead of art (Windows) | Use **Windows Terminal** (Microsoft Store, free). The old console does not do ANSI colours well. |
 | `Full AI mode` never appears | With no keys, only Pollinations is ready — it still counts as full AI. If the banner says offline, `.env` is not being read: run from the project folder. |
-| A provider answer fails / is empty | The key may be wrong, expired, or out of quota — `/llm` shows which keys are set. Octo tries the next provider, then falls back to the offline brain automatically. |
+| A provider answers fail / empty | The key may be wrong, expired, or out of quota — `/llm` shows which keys are set. Octo tries the next provider, then falls back to the offline brain automatically. |
 | Pollinations is slow / says "try again" | Its free anonymous lane allows about 1 request per 45 seconds. Wait a minute, or add a Groq key (fastest free tier). |
 | Octo forgot everything | `memory.json` was deleted or you ran it from another folder. Always run from the project folder so it finds the same `memory.json`. |
 | `ModuleNotFoundError` | You are running a file from the wrong folder. `cd` into the project folder first. |
@@ -273,7 +273,7 @@ finds the same `memory.json` every time.
 
 ```
 red-octopus-ai/
-├── octo.py            entry point — terminal UI, big OCTO banner, animated octopus, REPL
+├── octo.py            entry point — terminal UI, big red OCTO banner, tiny animated character, REPL
 ├── brain.py           offline brain — intents, small talk, calculator, jokes, internals secrecy
 ├── bank.py            memory bank — loader, lookup, gauge (954,526 entries)
 ├── gen_batch1.py      first batch (300 entries)

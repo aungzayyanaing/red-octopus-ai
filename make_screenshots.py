@@ -7,7 +7,7 @@ actual stdout, and draws it into terminal-style PNG images
 colours the app really uses).
 
 Scenarios:
-  01-startup.png  banner + octopus + greeting
+  01-startup.png  banner + tiny character + greeting
   02-chat.png     a real conversation (teach + recall + todos + joke)
   03-help.png     the /help output
 

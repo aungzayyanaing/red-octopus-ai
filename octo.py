@@ -40,7 +40,7 @@ GOLD = "\033[93m"
 GREEN = "\033[92m"
 DIM = "\033[90m"
 BOLD = "\033[1m"
-ORANGE = "\033[1;38;5;208m"
+BANNER_RED = "\033[1;38;5;196m"
 RESET = "\033[0m"
 
 PLAIN = os.environ.get("OCTO_PLAIN") == "1"  # used by make_screenshots.py
@@ -100,7 +100,7 @@ def render_markdown(text):
 
 
 # ----------------------------------------------------------------------
-# big block-letter name banner — OCTO in chunky orange block letters,
+# big block-letter name banner — OCTO in chunky red block letters,
 # the way CLAUDE CODE shows its name on startup.
 # ----------------------------------------------------------------------
 NAME_BANNER = [
@@ -117,83 +117,56 @@ NAME_BANNER = [
 def show_name_banner():
     """Print the big OCTO block-letter banner."""
     for line in NAME_BANNER:
-        print(color("       " + line, ORANGE))
-    print(color("              RED OCTOPUS AI", GOLD))
+        print(color("       " + line, BANNER_RED))
+    print(color("              RED OCTOPUS AI", RED))
 
 
 # ----------------------------------------------------------------------
-# animated red octopus — 3 frames (tentacles wave, eyes blink)
 # ----------------------------------------------------------------------
-FRAME_A = [  # eyes open, tentacles centered
-    r'        .--""""--.        ',
-    r'       /          \\       ',
-    r'      |  \\O    O/  |      ',
-    r'      |            |      ',
-    r'      |   ______   |      ',
-    r'       \\          /       ',
-    r'        |        |        ',
-    r'     __/          \\__     ',
-    r'    ||    ||  ||    ||    ',
-    r'    ||    ||  ||    ||    ',
-    r'   /||    ||  ||    ||\\   ',
-    r'   | |    ||  ||    | |   ',
-    r'   | |    ||  ||    | |   ',
-    r'    \\|    ||  ||    |/    ',
-    r'     |    ||  ||    |     ',
-    r'    _|    ||  ||    |_    ',
-    r'   /      ||  ||      \\   ',
+# tiny red pixel character — 3 frames (eyes blink, feet shift).
+# A small blocky sprite: red body, two black eyes (gaps), stubby legs,
+# standing on a ground line. Same character as the web demo.
+# ----------------------------------------------------------------------
+MINI_A = [  # eyes open
+    r'  ███████  ',
+    r' █████████ ',
+    r' ██ ███ ██ ',
+    r' █████████ ',
+    r' █████████ ',
+    r'  ██   ██  ',
+    r'___________',
 ]
 
-FRAME_B = [  # eyes blink, tentacles sway left
-    r'        .--""""--.        ',
-    r'       /          \\       ',
-    r'      |  \\-    -/  |      ',
-    r'      |            |      ',
-    r'      |   ______   |      ',
-    r'       \\          /       ',
-    r'        |        |        ',
-    r'     __/          \\__     ',
-    r'     ||    ||  ||    ||    ',
-    r'     ||    ||  ||    ||    ',
-    r'    /||    ||  ||    ||\\   ',
-    r'    | |    ||  ||    | |   ',
-    r'    | |    ||  ||    | |   ',
-    r'     \\|    ||  ||    |/    ',
-    r'      |    ||  ||    |     ',
-    r'     _|    ||  ||    |_    ',
-    r'    /      ||  ||      \\   ',
+MINI_B = [  # eyes blink (closed)
+    r'  ███████  ',
+    r' █████████ ',
+    r' █████████ ',
+    r' █████████ ',
+    r' █████████ ',
+    r'  ██   ██  ',
+    r'___________',
 ]
 
-FRAME_C = [  # eyes open, tentacles sway right
-    r'        .--""""--.        ',
-    r'       /          \\       ',
-    r'      |  \\O    O/  |      ',
-    r'      |            |      ',
-    r'      |   ______   |      ',
-    r'       \\          /       ',
-    r'        |        |        ',
-    r'     __/          \\__     ',
-    r'   ||    ||  ||    ||     ',
-    r'   ||    ||  ||    ||     ',
-    r'  /||    ||  ||    ||\\    ',
-    r'  | |    ||  ||    | |    ',
-    r'  | |    ||  ||    | |    ',
-    r'   \\|    ||  ||    |/     ',
-    r'    |    ||  ||    |      ',
-    r'   _|    ||  ||    |_     ',
-    r'  /      ||  ||      \\    ',
+MINI_C = [  # eyes open, feet shifted right
+    r'  ███████  ',
+    r' █████████ ',
+    r' ██ ███ ██ ',
+    r' █████████ ',
+    r' █████████ ',
+    r'   ██   ██ ',
+    r'___________',
 ]
 
-FRAMES = [FRAME_A, FRAME_B, FRAME_C]
+MINI_FRAMES = [MINI_A, MINI_B, MINI_C]
 
 
-def show_octopus(animated=True):
-    """Print the red octopus. Animated when interactive."""
+def show_mini(animated=True):
+    """Print the tiny red character. Animated when interactive."""
     if not animated or not INTERACTIVE:
-        for line in FRAME_A:
+        for line in MINI_A:
             print(color(line, RED))
         return
-    frames = (FRAME_A, FRAME_B, FRAME_C, FRAME_A)
+    frames = (MINI_A, MINI_B, MINI_C, MINI_A)
     for i, frame in enumerate(frames):
         for line in frame:
             print(color(line, RED))
@@ -292,7 +265,7 @@ def main():
     if INTERACTIVE:
         clear_screen()
     show_name_banner()
-    show_octopus(animated=True)
+    show_mini(animated=True)
     banner(full_ai)
     print()
     type_out(color("Octo > ", RED) + greet(memory))
